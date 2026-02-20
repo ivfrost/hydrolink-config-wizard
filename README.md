@@ -1,0 +1,3 @@
+# Hydrolink Config Wizard (WIP)
+
+Hydrolink Config Wizard is the frontend for the Hydrolink irrigation IoT device—an ESP32-based system programmed with the Arduino framework and PlatformIO IDE for VS Code. This frontend is built with React, Vite, Tailwind CSS, TanStack Router, TanStack Query, and other modern libraries. Designed to be served as a static site directly from the device, it provides a user-friendly interface for configuring the device: connecting to Wi-Fi, linking to a user account, and managing device settings. Currently, only this frontend portion of the project is open source.
