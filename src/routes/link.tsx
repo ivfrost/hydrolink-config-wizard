@@ -96,11 +96,7 @@ function LinkComponent() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Text
-            messageId="link_account_hint_2"
-            variant="tip"
-            className="text-blue-700! dark:text-blue-500! hover:underline"
-          />
+          <Text messageId="link_account_hint_2" variant="link" />
         </a>
       </div>
 
@@ -108,11 +104,12 @@ function LinkComponent() {
         <Button
           iconSize="large"
           variant="outline"
+          modifier="tallest"
           size="cta"
           fullWidth={true}
           disabled={!!loadingButton}
           loading={loadingButton === 'qr'}
-          leftIcon={<QrCodeIcon />}
+          icon={<QrCodeIcon />}
           onClick={() => handleShowOTP('qr')}
         >
           {t('link_method_qr')}
@@ -120,11 +117,12 @@ function LinkComponent() {
         <Button
           iconSize="large"
           variant="outline"
+          modifier="tallest"
           size="cta"
           fullWidth={true}
           disabled={!!loadingButton}
           loading={loadingButton === 'text'}
-          leftIcon={<LinkIcon />}
+          icon={<LinkIcon />}
           onClick={() => handleShowOTP('text')}
         >
           {t('link_method_text')}

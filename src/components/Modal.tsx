@@ -55,7 +55,7 @@ export default function Modal({
           as="div"
           role="dialog"
           aria-modal="true"
-          className="inline-block w-full max-w-md lg:max-w-2xl p-8 my-8 pt-12 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-stone-900 shadow-2xl rounded-2xl outline-1 outline-neutral-200 dark:outline-neutral-800 relative"
+          className="inline-block w-full max-w-md lg:max-w-2xl p-8 pt-17 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-stone-900 shadow-2xl rounded-2xl outline-1 outline-neutral-200 dark:outline-neutral-800 relative"
           enter="ease-out duration-300"
           enterFrom="opacity-0 scale-95 translate-y-4"
           enterTo="opacity-100 scale-100 translate-y-0"
@@ -63,16 +63,15 @@ export default function Modal({
           leaveFrom="opacity-100 scale-100 translate-y-0"
           leaveTo="opacity-0 scale-95 translate-y-4"
         >
-          <Button
-            iconOnly={true}
-            variant="tertiary"
-            size="compact"
-            className="absolute top-4 right-4 transition-transform duration-200"
-            onClick={onClose}
-            iconSize="medium"
-            fullWidth={false}
-            leftIcon={X}
-          />
+          <div className="absolute top-4 right-4 transition-transform duration-200">
+            <Button
+              variant="tertiary"
+              onClick={onClose}
+              iconSize="medium"
+              modifier="adaptiveBg"
+              icon={X}
+            />
+          </div>
           {children}
         </TransitionChild>
       </div>

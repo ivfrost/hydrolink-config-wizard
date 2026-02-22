@@ -1,16 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import Text from '../components/Text'
 import Title from '../components/Title'
-import Button from '../components/Button'
-import {
-  CloudOff,
-  LockIcon,
-  Radio,
-  RefreshCcw,
-  WifiHigh,
-  WifiLow,
-  WifiZero,
-} from 'lucide-react'
+import { CloudOff, Radio, RefreshCcw } from 'lucide-react'
 import { useContext, useState, type SubmitEventHandler } from 'react'
 import { ConnectionContext } from '../context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -27,6 +18,7 @@ import {
 } from '../types/api'
 import toast from 'react-hot-toast'
 import { NetworkButton } from '../components/NetworkButton'
+import Button from '../components/Button'
 
 export const Route = createFileRoute('/connect')({
   component: ConnectComponent,
@@ -129,7 +121,7 @@ function ConnectComponent() {
       {!connection.connected && <Text messageId="establish_connection" />}
       <Text messageId="establish_connection_tip" variant="tip" />
       <form className="space-y-4 lg:space-y-6 mt-6" onSubmit={handleConnect}>
-        <div className="relative space-y-2.75 lg:space-y-4 outline outline-1 outline-neutral-200 dark:outline-neutral-900 rounded-lg p-2 pt-1 lg:p-2 shadow-lg shadow-black/10 dark:shadow-black/10 backdrop-blur-sm">
+        <div className="relative space-y-2.75 lg:space-y-4 outline outline-1 outline-neutral-200 dark:outline-neutral-900 rounded-lg p-2 pt-1 lg:p-2 shadow-lg shadow-black/10 dark:shadow-black/10 backdrop-blur-sm overflow-visible">
           {/* Loading state */}
           {isPending && (
             <div className="space-y-1.75 lg:space-y-2 px-1 max-h-64 lg:max-h-82 animate-pulse">
@@ -167,20 +159,15 @@ function ConnectComponent() {
                 />
 
                 <Button
-                  iconOnly
-                  rightIcon={RefreshCcw}
-                  iconSize="small"
+                  icon={RefreshCcw}
                   variant="tertiary"
-                  size="compact"
                   fullWidth={false}
-                  messageId="rescan"
                   loading={isFetching}
                   onClick={refetch}
-                  className={isFetching ? 'animate-spin bg-transparent' : ''}
                 />
               </div>
 
-              <div className="space-y-2 overflow-y-auto max-h-64 lg:max-h-82 pr-1 scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700">
+              <div className="space-y-2 overflow-y-auto max-h-64 lg:max-h-82 pr-1 scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700 p-1">
                 {/* Connected network first */}
                 {data
                   .filter((n) => n.ssid === connection?.ssid)
@@ -234,23 +221,26 @@ function ConnectComponent() {
             )}
 
             {isSelectedConnectedNetwork ? (
-              <Button
-                messageId="disconnect"
-                leftIcon={CloudOff}
-                onClick={handleDisconnect}
-                variant="secondary"
-                className="hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors duration-200"
-              />
+              <div className="w-full justify-end flex">
+                <Button
+                  message="disconnect"
+                  icon={CloudOff}
+                  onClick={handleDisconnect}
+                  variant="primary"
+                  modifier="danger"
+                />
+              </div>
             ) : (
               password.length > 0 && (
-                <Button
-                  messageId="connect"
-                  loading={connectMutation.isPending}
-                  leftIcon={Radio}
-                  type="submit"
-                  variant="primary"
-                  className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-lg"
-                />
+                <div className="w-full justify-end flex">
+                  <Button
+                    type="submit"
+                    message="connect"
+                    loading={connectMutation.isPending}
+                    icon={Radio}
+                    variant="primary"
+                  />
+                </div>
               )
             )}
           </div>

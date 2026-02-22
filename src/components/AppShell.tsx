@@ -27,7 +27,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </div>
-      <footer className="w-full py-4 px-6 flex justify-between mt-auto">
+      <footer className="w-full py-4 px-6 flex justify-between mt-auto items-center">
         <span className="text-xs text-gray-400 dark:text-neutral-500">
           &copy; {new Date().getFullYear()} Hydrolink
         </span>

@@ -1,46 +1,36 @@
 import type { LucideIcon } from 'lucide-react'
 import { createElement, type ReactElement, isValidElement } from 'react'
 import { twMerge } from 'tailwind-merge'
+import z from 'zod'
+
+const IconPropSchema = z.object({
+  icon: z.custom<LucideIcon | ReactElement>(),
+  iconSize: z.enum(['small', 'medium', 'large']).optional(),
+  iconOnly: z.boolean(),
+})
+
+type IconProps = z.infer<typeof IconPropSchema>
 
 const ICON_SIZE_MAP = {
-  small: 'w-4.25 h-4.25',
-  medium: 'w-5.75 h-5.75',
-  large: 'w-8.25 h-8.25',
+  small: 'w-4 h-4',
+  medium: 'w-4.5 h-4.5',
+  large: 'w-7 h-7',
 }
 
-const BUTTON_SIZE_FALLBACK = {
-  compact: 'w-3 h-3',
-  primary: 'w-5 h-5',
-  cta: 'w-6 h-6',
-  secondary: 'w-4.5 h-4.5',
+const MODIFIER_MAP = {
+  iconOnly: 'w-4.5 h-4.5',
 }
 
-export const renderIcon = (
-  Icon: LucideIcon | ReactElement,
-  position: 'left' | 'right',
-  iconSize: 'small' | 'medium' | 'large',
-  iconClassName: string,
-  iconOnly: boolean,
-  size?: 'cta' | 'primary' | 'secondary' | 'compact',
-): ReactElement | null => {
-  if (!Icon) return null
+export const renderIcon = (props: IconProps): ReactElement => {
+  const { icon, iconSize, iconOnly } = props
 
-  const spacing =
-    !iconOnly && position === 'left'
-      ? 'mr-1.75'
-      : !iconOnly && position === 'right'
-        ? 'ml-1.75'
-        : ''
+  const sizeClass = ICON_SIZE_MAP[iconSize || 'medium']
+  const modifierClass = iconOnly ? MODIFIER_MAP['iconOnly'] : ''
+  const classes = twMerge('z-20', sizeClass, modifierClass)
 
-  const sizeClass =
-    ICON_SIZE_MAP[iconSize] ||
-    (size ? BUTTON_SIZE_FALLBACK[size] : ICON_SIZE_MAP.medium)
-
-  const classes = twMerge('z-10', spacing, sizeClass, iconClassName)
-
-  if (isValidElement(Icon)) {
-    return Icon
+  if (isValidElement(icon)) {
+    return icon
   }
 
-  return createElement(Icon as LucideIcon, { className: classes })
+  return createElement(icon as LucideIcon, { className: classes })
 }

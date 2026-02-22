@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
-import Button from '../components/Button'
 import { ConnectionContext, LoadingContext } from '../context'
 import { useContext } from 'react'
 import Title from '../components/Title'
 import Text from '../components/Text'
+import Button from '../components/Button'
 
 const IndexComponent = () => {
   const { loading } = useContext(LoadingContext)
@@ -14,14 +14,17 @@ const IndexComponent = () => {
       <Title messageId="welcome_title" level="h1" />
       <Text messageId="welcome_message" />
 
-      <Link to={!connection.connected ? '/connect' : '/link'}>
-        <Button
-          messageId="begin"
-          loading={loading}
-          rightIcon={ArrowRight}
-          fullWidth={true}
-        />
-      </Link>
+      <div className="w-full flex justify-end">
+        <Link to={!connection.connected ? '/connect' : '/link'}>
+          <Button
+            message="next_step"
+            icon={ArrowRight}
+            iconPosition="right"
+            loading={loading}
+            variant={'primary'}
+          />
+        </Link>
+      </div>
     </div>
   )
 }

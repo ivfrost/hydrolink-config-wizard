@@ -41,14 +41,13 @@ export default function NavigationControl({ className = '' }) {
   return isRootRoute ? null : (
     <div className={className}>
       <Button
-        messageId="previous_step"
-        leftIcon={ArrowLeft}
+        message="previous_step"
+        icon={ArrowLeft}
         onClick={handleGoBackButton}
-        size="secondary"
         variant="tertiary"
         fullWidth={false}
         disabled={!canNavigateBack}
-        className="hover:-translate-x-1 transition-transform duration-200"
+        modifier="slideLeft"
       />
     </div>
   )
