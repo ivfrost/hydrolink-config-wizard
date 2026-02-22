@@ -24,78 +24,76 @@ type ButtonProps = {
   children?: React.ReactNode
 }
 
-const Button = (props: ButtonProps) => {
-  const {
-    messageId = '',
-    messageText,
-    leftIcon,
-    rightIcon,
-    loading = false,
-    disabled = false,
-    size = 'medium',
-    iconOnly = false,
-    iconSize = 'medium',
-    iconClassName = '',
-    variant = 'primary',
-    className = '',
-    onClick,
-    active = false,
-    type = 'button',
-    fullWidth = true,
-    children,
-  } = props
+const SIZE_MAP = {
+  cta: 'text-medium px-6 py-4.25 min-h-17 min-w-17 gap-2.25',
+  primary: 'text-normal px-3.75 py-1.75 min-h-11 min-w-11',
+  secondary: 'text-base min-h-11 min-w-11 px-2.75 py-1.25',
+  compact: 'text-base min-h-9 min-w-9 px-3 py-1.5',
+}
+
+const VARIANT_MAP = {
+  primary:
+    'hover:dark:bg-neutral-700 shadow-md shadow-black/12 dark:shadow-black/18',
+  secondary:
+    'bg-neutral-300 dark:bg-neutral-700 hover:bg-neutral-200 hover:dark:bg-neutral-600 shadow-sm shadow-black/10 dark:shadow-black/20',
+  tertiary:
+    'bg-transparent dark:bg-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-none',
+  outline:
+    'bg-transparent dark:bg-transparent border border-neutral-200 dark:border-neutral-900 font-normal hover:bg-neutral-300 dark:hover:bg-neutral-800',
+}
+
+const Button = ({
+  messageId = '',
+  messageText,
+  leftIcon,
+  rightIcon,
+  loading = false,
+  disabled = false,
+  size = 'primary',
+  iconOnly = false,
+  iconSize = 'medium',
+  iconClassName = '',
+  variant = 'primary',
+  className = '',
+  onClick,
+  active = false,
+  type = 'button',
+  fullWidth = true,
+  children,
+}: ButtonProps) => {
+  const { t } = useTranslation()
 
   const classes = useMemo(() => {
-    const baseClasses = twMerge(
-      'bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 hover:dark:bg-neutral-700 active:scale-[0.98] cursor-pointer text-neutral-800 group dark:text-neutral-100 flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-150 disabled:pointer-events-none disabled:opacity-60 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950 focus-visible:outline-none',
-      size === 'cta'
-        ? 'text-lg h-18 px-4.5 gap-2.5'
-        : size === 'primary'
-          ? 'text-normal h-14 px-4 gap-2.25'
-          : size === 'compact'
-            ? 'text-base h-11 px-3.25 gap-2'
-            : 'text-base h-11 px-3.25 gap-2',
-      loading ? 'cursor-wait pointer-events-none opacity-60' : '',
+    const base =
+      'bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 hover:dark:bg-neutral-700 active:scale-[0.98] cursor-pointer text-neutral-800 dark:text-neutral-100 flex items-center justify-center font-medium rounded-lg transition-all duration-150 disabled:pointer-events-none disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950 focus-visible:outline-none'
+
+    const sizeClass = SIZE_MAP[size]
+    const variantClass = VARIANT_MAP[variant]
+
+    const iconOnlyClass = iconOnly ? 'w-9.25 h-9.25 p-0 rounded-xl gap-0' : ''
+    const activeClass =
+      variant === 'outline' && active
+        ? 'border-blue-400 dark:border-blue-500 bg-neutral-200 dark:bg-neutral-900'
+        : ''
+
+    const loadingClass = loading
+      ? 'cursor-wait opacity-60 pointer-events-none'
+      : ''
+    const widthClass = fullWidth ? 'w-full' : 'w-max'
+
+    return twMerge(
+      base,
+      sizeClass,
+      variantClass,
+      iconOnlyClass,
+      activeClass,
+      loadingClass,
+      widthClass,
+      className,
     )
+  }, [size, variant, iconOnly, loading, fullWidth, active, className])
 
-    const variantClass =
-      variant === 'primary'
-        ? 'hover:dark:bg-neutral-700 shadow-md shadow-black/12 dark:shadow-black/18'
-        : variant === 'secondary'
-          ? 'bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 hover:dark:bg-neutral-600 shadow-sm shadow-black/10 dark:shadow-black/20'
-          : variant === 'tertiary'
-            ? 'bg-transparent dark:bg-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-none'
-            : variant === 'outline'
-              ? twMerge(
-                  'bg-transparent dark:bg-transparent border border-neutral-200 dark:border-neutral-900 font-normal focus:ring-0 focus:dark:outline-none focus:dark:bg-neutral-800 focus:dark:ring-blue-500 justify-start hover:bg-neutral-300 dark:hover:bg-neutral-800',
-                  active
-                    ? 'border-blue-300 dark:border-blue-500 hover:text-black/70 dark:hover:text-white/70 bg-neutral-200 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-900'
-                    : '',
-                )
-              : ''
-
-    const iconOnlyClass = iconOnly
-      ? 'w-9.25 h-9.25 gap-0 p-0 rounded-xl'
-      : twMerge(
-          leftIcon ? 'pr-4' : '',
-          rightIcon ? 'pl-4' : '',
-          fullWidth ? 'w-full' : 'w-auto',
-        )
-
-    return twMerge(baseClasses, variantClass, iconOnlyClass, className)
-  }, [
-    loading,
-    iconOnly,
-    variant,
-    fullWidth,
-    className,
-    leftIcon,
-    size,
-    rightIcon,
-    active,
-  ])
-
-  const { t } = useTranslation()
+  const label = messageText || (messageId ? t(messageId) : null)
 
   return (
     <button
@@ -114,25 +112,29 @@ const Button = (props: ButtonProps) => {
               'left',
               iconSize,
               iconClassName,
-              size,
               iconOnly,
+              size,
             )}
-          <span
-            className={
-              children ? 'flex justify-between items-center w-full' : ''
-            }
-          >
-            {(!iconOnly && !messageText && t(messageId)) || messageText}
-            {children}
-          </span>
+
+          {!iconOnly && (
+            <span
+              className={
+                children ? 'flex justify-between items-center w-full' : ''
+              }
+            >
+              {label}
+              {children}
+            </span>
+          )}
+
           {rightIcon &&
             renderIcon(
               rightIcon,
               'right',
               iconSize,
               iconClassName,
-              size,
               iconOnly,
+              size,
             )}
         </>
       )}

@@ -50,5 +50,7 @@ export default {
       'Este asistente le ayudará a configurar su dispositivo para comenzar a utilizarlo. El proceso es rápido y sencillo.',
     welcome_title: 'Bienvenido a Hydrolink',
     not_available: 'No disponible',
+    network_secure: 'Segura',
+    network_insecure: 'Insegura',
   },
 }

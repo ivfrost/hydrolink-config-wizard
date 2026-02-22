@@ -10,7 +10,7 @@ const IndexComponent = () => {
   const { loading } = useContext(LoadingContext)
   const { connection } = useContext(ConnectionContext)
   return (
-    <div className="space-y-2.75 lg:space-y-4">
+    <div className="space-y-4">
       <Title messageId="welcome_title" level="h1" />
       <Text messageId="welcome_message" />
 

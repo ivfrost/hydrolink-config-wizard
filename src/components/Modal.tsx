@@ -66,9 +66,11 @@ export default function Modal({
           <Button
             iconOnly={true}
             variant="tertiary"
-            className="absolute top-4 right-4 hover:rotate-90 transition-transform duration-200"
+            size="compact"
+            className="absolute top-4 right-4 transition-transform duration-200"
             onClick={onClose}
-            iconSize="large"
+            iconSize="medium"
+            fullWidth={false}
             leftIcon={X}
           />
           {children}

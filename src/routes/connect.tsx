@@ -4,6 +4,7 @@ import Title from '../components/Title'
 import Button from '../components/Button'
 import {
   CloudOff,
+  LockIcon,
   Radio,
   RefreshCcw,
   WifiHigh,
@@ -12,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useContext, useState, type SubmitEventHandler } from 'react'
 import { ConnectionContext } from '../context'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from 'i18next'
 import Input from '../components/Input'
 import {
@@ -25,6 +26,7 @@ import {
   type NetworkDisconnectResponseType,
 } from '../types/api'
 import toast from 'react-hot-toast'
+import { NetworkButton } from '../components/NetworkButton'
 
 export const Route = createFileRoute('/connect')({
   component: ConnectComponent,
@@ -37,17 +39,20 @@ function ConnectComponent() {
     undefined,
   )
   const [password, setPassword] = useState('')
+  const queryClient = useQueryClient()
 
   const { isPending, error, data, refetch, isFetching } = useQuery({
     queryKey: ['networks'],
     queryFn: async (): Promise<AvailableNetworkType> => {
-      const response = await fetch('/api/network/available')
+      const response = await fetch('/api/networks')
       if (!response.ok) {
         throw new Error('Failed to fetch networks')
       }
       const networks = await response.json()
+      console.log(AvailableNetworkSchema.parse(networks))
       return AvailableNetworkSchema.parse(networks)
     },
+    refetchInterval: 10000,
   })
 
   const connectMutation = useMutation({
@@ -68,13 +73,8 @@ function ConnectComponent() {
       const result = await response.json()
       return NetworkConnectResponseSchema.parse(result)
     },
-    onSuccess: (result, variables) => {
-      setConnection(() => ({
-        connected: true,
-        isConnecting: false,
-        ip: result.ip,
-        ssid: variables.ssid,
-      }))
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['currentNetwork'] })
       toast.success(t('connected_to_network', { ssid: variables.ssid }))
       setSelectedSsid(undefined)
       setPassword('')
@@ -128,16 +128,14 @@ function ConnectComponent() {
       {connection.connected && <Text messageId="edit_connection" />}
       {!connection.connected && <Text messageId="establish_connection" />}
       <Text messageId="establish_connection_tip" variant="tip" />
-      <form
-        className="lg:space-y-6 space-y-4 mt-6"
-        onSubmit={(e) => handleConnect(e)}
-      >
-        <div className="relative space-y-2.75 lg:space-y-4 outline-1 outline-neutral-200 dark:outline-neutral-900 rounded-lg p-2 shadow-lg shadow-black/10 dark:shadow-black/10 backdrop-blur-sm">
-          {isPending ? (
-            <div className="space-y-2 px-1 max-h-64 lg:max-h-82  animate-pulse mb-2">
+      <form className="space-y-4 lg:space-y-6 mt-6" onSubmit={handleConnect}>
+        <div className="relative space-y-2.75 lg:space-y-4 outline outline-1 outline-neutral-200 dark:outline-neutral-900 rounded-lg p-2 pt-1 lg:p-2 shadow-lg shadow-black/10 dark:shadow-black/10 backdrop-blur-sm">
+          {/* Loading state */}
+          {isPending && (
+            <div className="space-y-1.75 lg:space-y-2 px-1 max-h-64 lg:max-h-82 animate-pulse">
               <Text
                 messageId="scanning_networks"
-                className="px-1 font-medium py-1.75"
+                className="px-1.25 font-medium py-1.5"
               />
               {[...Array(4)].map((_, i) => (
                 <div
@@ -147,92 +145,80 @@ function ConnectComponent() {
                 />
               ))}
             </div>
-          ) : error ? (
-            <div className="px-1 py-1.75 text-center mb-2">
-              <Text messageId="failed_scan" className="text-red-500" />
+          )}
+
+          {/* Error state */}
+          {!isPending && error && (
+            <div className="flex justify-between items-center mb-1 lg:mb-2">
+              <Text
+                messageId="failed_scan"
+                className="px-1.25 font-medium py-1.5"
+              />
             </div>
-          ) : data && data.length > 0 ? (
+          )}
+
+          {/* Networks list */}
+          {!isPending && !error && data?.length > 0 && (
             <>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-1 lg:mb-2">
                 <Text
                   messageId="select_network"
-                  className="px-1 font-medium py-1.75"
+                  className="px-1.25 font-medium py-1.5"
                 />
+
                 <Button
-                  iconOnly={true}
+                  iconOnly
                   rightIcon={RefreshCcw}
                   iconSize="small"
                   variant="tertiary"
+                  size="compact"
                   fullWidth={false}
                   messageId="rescan"
                   loading={isFetching}
-                  onClick={() => refetch()}
-                  className={isFetching ? 'animate-spin' : ''}
+                  onClick={refetch}
+                  className={isFetching ? 'animate-spin bg-transparent' : ''}
                 />
               </div>
+
               <div className="space-y-2 overflow-y-auto max-h-64 lg:max-h-82 pr-1 scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700">
+                {/* Connected network first */}
                 {data
-                  .filter((network) => network.ssid === connection?.ssid)
+                  .filter((n) => n.ssid === connection?.ssid)
                   .map((network, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <Button
-                        className="flex-1"
-                        leftIcon={
-                          (network.rssi ?? -100) > -50
-                            ? WifiHigh
-                            : (network.rssi ?? -100) > -70
-                              ? WifiLow
-                              : WifiZero
-                        }
-                        iconSize="large"
-                        iconClassName="-mt-1.5"
-                        variant="outline"
-                        fullWidth={true}
-                        size="primary"
-                        messageText={network.ssid}
-                        loading={false}
-                        onClick={() => setSelectedSsid(network.ssid)}
-                        active={network.ssid === selectedSsid}
-                      >
-                        <span className="text-xs text-neutral-400">
-                          {network.ssid === connection?.ssid
-                            ? t('connected')
-                            : ''}
-                        </span>
-                      </Button>
-                    </div>
+                    <NetworkButton
+                      key={idx}
+                      network={network}
+                      selectedSsid={selectedSsid}
+                      connection={connection}
+                      onSelect={setSelectedSsid}
+                      t={t}
+                    />
                   ))}
+
+                {/* Other networks */}
                 {data
-                  .filter((network) => network.ssid !== connection?.ssid)
+                  .filter((n) => n.ssid !== connection?.ssid)
                   .map((network, idx) => (
-                    <div key={idx}>
-                      <Button
-                        leftIcon={
-                          (network.rssi ?? -100) > -50
-                            ? WifiHigh
-                            : (network.rssi ?? -100) > -70
-                              ? WifiLow
-                              : WifiZero
-                        }
-                        iconSize="large"
-                        iconClassName="-mt-1.5"
-                        variant="outline"
-                        fullWidth={true}
-                        messageText={network.ssid}
-                        loading={false}
-                        size="primary"
-                        onClick={() => setSelectedSsid(network.ssid)}
-                        active={network.ssid === selectedSsid}
-                      ></Button>
-                    </div>
+                    <NetworkButton
+                      key={idx}
+                      network={network}
+                      selectedSsid={selectedSsid}
+                      connection={connection}
+                      onSelect={setSelectedSsid}
+                      t={t}
+                    />
                   ))}
               </div>
             </>
-          ) : (
+          )}
+
+          {/* No networks */}
+          {!isPending && !error && (!data || data.length === 0) && (
             <Text messageId="no_networks" />
           )}
         </div>
 
+        {/* Password + Connect/Disconnect */}
         {selectedSsid && (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {!isSelectedConnectedNetwork && (
@@ -255,16 +241,18 @@ function ConnectComponent() {
                 variant="secondary"
                 className="hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors duration-200"
               />
-            ) : password.length > 0 ? (
-              <Button
-                messageId="connect"
-                loading={connectMutation.isPending}
-                leftIcon={Radio}
-                type="submit"
-                variant="primary"
-                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-lg"
-              />
-            ) : null}
+            ) : (
+              password.length > 0 && (
+                <Button
+                  messageId="connect"
+                  loading={connectMutation.isPending}
+                  leftIcon={Radio}
+                  type="submit"
+                  variant="primary"
+                  className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white shadow-lg"
+                />
+              )
+            )}
           </div>
         )}
       </form>

@@ -8,11 +8,16 @@ import toast from 'react-hot-toast'
 import { t } from 'i18next'
 import useIsMobile from '../utilities/isMobile'
 import { useQuery } from '@tanstack/react-query'
-import { DeviceSchema, type DeviceType } from '../types/api'
+import {
+  CurrentNetworkSchema,
+  DeviceSchema,
+  type CurrentNetworkType,
+  type DeviceType,
+} from '../types/api'
 
 export default function StatusBar() {
   const navigate = useNavigate()
-  const { connection } = useContext(ConnectionContext)
+  const { connection, setConnection } = useContext(ConnectionContext)
   const { isDeveloperMode, setDeveloperMode } = useContext(DeveloperContext)
   const [count, setCount] = useState(0)
   const isConnecting = connection.isConnecting
@@ -31,6 +36,38 @@ export default function StatusBar() {
       setDevice(parsedDevice)
       return parsedDevice
     },
+    refetchInterval: 30000,
+  })
+
+  useQuery({
+    queryKey: ['currentNetwork'],
+    queryFn: async (): Promise<CurrentNetworkType> => {
+      const response = await fetch('/api/network')
+      if (!response.ok) {
+        setConnection((prev) => ({
+          ...prev,
+          connected: false,
+          mode: 'ap',
+          ssid: null,
+          rssi: -999,
+          ip: null,
+          isConnecting: false,
+        }))
+        throw new Error('Failed to fetch current network info')
+      }
+      const networkData = await response.json()
+      const parsedNetwork = CurrentNetworkSchema.parse(networkData)
+      setConnection({
+        connected: parsedNetwork.connected,
+        mode: parsedNetwork.mode,
+        ssid: parsedNetwork.ssid,
+        rssi: parsedNetwork.rssi,
+        ip: parsedNetwork.ip,
+        isConnecting: false,
+      })
+      return parsedNetwork
+    },
+    refetchInterval: 10000,
   })
 
   const handleDevModeDisplay = () => {
@@ -121,7 +158,7 @@ export default function StatusBar() {
             className="hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors duration-200 px-2 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
             title={`Click ${5 - count} time${count != 4 ? 's' : ''} to ${!isDeveloperMode ? 'enable' : 'disable'} developer mode`}
           >
-            <span>v0.0.1</span>
+            <span>v{device.firmware ?? t('unknown_firmware')}</span>
           </button>
         </div>
       </div>

@@ -4,13 +4,15 @@ export const AvailableNetworkSchema = z.array(
   z.object({
     ssid: z.string(),
     rssi: z.number().nullable(),
+    frequency: z.string().nullable(),
+    secure: z.enum(['secure', 'insecure']),
   }),
 )
 export type AvailableNetworkType = z.infer<typeof AvailableNetworkSchema>
 
 export const CurrentNetworkSchema = z.object({
-  mode: z.enum(['ap', 'sta', 'ap_sta']),
   connected: z.boolean(),
+  mode: z.enum(['ap', 'sta', 'ap_sta']).nullable(),
   ssid: z.string().nullable(),
   rssi: z.number().nullable(),
   ip: z.string().nullable(),
@@ -25,10 +27,10 @@ export type NetworkConnectRequestType = z.infer<
   typeof NetworkConnectRequestSchema
 >
 export const NetworkConnectResponseSchema = z.object({
-  status: z.number(),
-  changed: z.boolean(),
-  ip: z.string().nullable(),
-  errors: z.array(z.string()).nullable(),
+  parseFailed: z.boolean(),
+  saveFailed: z.boolean(),
+  applyFailed: z.boolean(),
+  reason: z.string().nullable(),
 })
 export type NetworkConnectResponseType = z.infer<
   typeof NetworkConnectResponseSchema

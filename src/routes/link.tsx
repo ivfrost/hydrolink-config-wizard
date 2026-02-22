@@ -31,11 +31,7 @@ function LinkComponent() {
     }
   }, [connection.connected, navigate])
 
-  const {
-    data: otpData,
-    refetch,
-    isFetching,
-  } = useQuery({
+  const { refetch, isFetching } = useQuery({
     queryKey: ['fetch-otp'],
     queryFn: async (): Promise<{ otp: string }> => {
       const response = await fetch('/api/device/link')
@@ -90,51 +86,49 @@ function LinkComponent() {
   }
 
   return (
-    <div className="space-y-2.75 lg:space-y-4">
+    <div className="space-y-4">
       <Title messageId="link_title" level="h1" />
       <Text messageId="link_message" />
-      <div className="space-y-2.75 lg:space-y-4">
-        <div className="flex gap-1">
-          <Text messageId="link_account_hint" variant="tip" />
-          <a
-            href="https://app.hydro.link/signup"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Text
-              messageId="link_account_hint_2"
-              variant="tip"
-              className="text-blue-700! dark:text-blue-500! hover:underline"
-            />
-          </a>
-        </div>
+      <div className="flex gap-1">
+        <Text messageId="link_account_hint" variant="tip" />
+        <a
+          href="https://app.hydro.link/signup"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Text
+            messageId="link_account_hint_2"
+            variant="tip"
+            className="text-blue-700! dark:text-blue-500! hover:underline"
+          />
+        </a>
+      </div>
 
-        <div className="space-y-4 flex flex-col">
-          <Button
-            iconSize="large"
-            variant="outline"
-            size="cta"
-            fullWidth={true}
-            disabled={!!loadingButton}
-            loading={loadingButton === 'qr'}
-            leftIcon={<QrCodeIcon />}
-            onClick={() => handleShowOTP('qr')}
-          >
-            {t('link_method_qr')}
-          </Button>
-          <Button
-            iconSize="large"
-            variant="outline"
-            size="cta"
-            fullWidth={true}
-            disabled={!!loadingButton}
-            loading={loadingButton === 'text'}
-            leftIcon={<LinkIcon />}
-            onClick={() => handleShowOTP('text')}
-          >
-            {t('link_method_text')}
-          </Button>
-        </div>
+      <div className="space-y-3.75 flex flex-col">
+        <Button
+          iconSize="large"
+          variant="outline"
+          size="cta"
+          fullWidth={true}
+          disabled={!!loadingButton}
+          loading={loadingButton === 'qr'}
+          leftIcon={<QrCodeIcon />}
+          onClick={() => handleShowOTP('qr')}
+        >
+          {t('link_method_qr')}
+        </Button>
+        <Button
+          iconSize="large"
+          variant="outline"
+          size="cta"
+          fullWidth={true}
+          disabled={!!loadingButton}
+          loading={loadingButton === 'text'}
+          leftIcon={<LinkIcon />}
+          onClick={() => handleShowOTP('text')}
+        >
+          {t('link_method_text')}
+        </Button>
       </div>
       {isOpenQrModal && otp && (
         <Modal onClose={() => setOpenQrModal(false)}>

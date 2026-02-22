@@ -48,5 +48,8 @@ export default {
     welcome_message:
       'This wizard will guide you through setting up your device to get started. The process is quick and easy.',
     welcome_title: 'Welcome to Hydrolink',
+    not_available: 'Not available',
+    network_secure: 'Secure',
+    network_insecure: 'Insecure',
   },
 }

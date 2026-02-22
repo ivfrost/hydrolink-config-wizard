@@ -1,15 +1,13 @@
 import { createContext, type Dispatch, type SetStateAction } from 'react'
+import type { CurrentNetworkType } from './types/api'
 
 export interface LoadingContextType {
   loading: boolean
   setLoading: (loading: boolean) => void
 }
 
-export interface ConnectionContextType {
-  connected: boolean
+export interface ConnectionContextType extends CurrentNetworkType {
   isConnecting: boolean
-  ip?: string | null
-  ssid?: string | null
 }
 
 export interface DeviceContextType {
@@ -27,7 +25,14 @@ export const ConnectionContext = createContext<{
   connection: ConnectionContextType
   setConnection: Dispatch<SetStateAction<ConnectionContextType>>
 }>({
-  connection: { connected: false, ssid: null, isConnecting: false, ip: null },
+  connection: {
+    connected: false,
+    ssid: null,
+    rssi: -999,
+    mode: 'ap',
+    isConnecting: false,
+    ip: null,
+  },
   setConnection: () => {},
 })
 

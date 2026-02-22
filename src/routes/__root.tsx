@@ -19,7 +19,9 @@ function Root() {
   const [loading, setLoading] = useState(false)
   const [connection, setConnection] = useState<ConnectionContextType>({
     connected: false,
+    mode: 'ap',
     ssid: null,
+    rssi: null,
     ip: null,
     isConnecting: false,
   })

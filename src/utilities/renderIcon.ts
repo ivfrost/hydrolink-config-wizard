@@ -1,35 +1,46 @@
 import type { LucideIcon } from 'lucide-react'
-import { createElement, type ReactElement } from 'react'
+import { createElement, type ReactElement, isValidElement } from 'react'
 import { twMerge } from 'tailwind-merge'
+
+const ICON_SIZE_MAP = {
+  small: 'w-4.25 h-4.25',
+  medium: 'w-5.75 h-5.75',
+  large: 'w-8.25 h-8.25',
+}
+
+const BUTTON_SIZE_FALLBACK = {
+  compact: 'w-3 h-3',
+  primary: 'w-5 h-5',
+  cta: 'w-6 h-6',
+  secondary: 'w-4.5 h-4.5',
+}
 
 export const renderIcon = (
   Icon: LucideIcon | ReactElement,
   position: 'left' | 'right',
   iconSize: 'small' | 'medium' | 'large',
   iconClassName: string,
-  size: 'small' | 'medium' | 'large',
   iconOnly: boolean,
+  size?: 'cta' | 'primary' | 'secondary' | 'compact',
 ): ReactElement | null => {
   if (!Icon) return null
 
-  const iconClasses = twMerge(
-    !iconOnly && position === 'left' && !iconOnly ? 'mr-1' : '',
-    !iconOnly && position === 'right' && !iconOnly ? 'ml-1' : '',
-    !iconSize && size === 'small' ? 'w-4 h-4' : '',
-    !iconSize && size === 'medium' ? 'w-5 h-5' : '',
-    !iconSize && size === 'large' ? 'w-6 h-6' : '',
-    iconSize === 'small' ? 'w-4 h-4' : '',
-    iconSize === 'medium' ? 'w-5 h-5' : '',
-    iconSize === 'large' ? 'w-6 h-6' : '',
-    iconClassName,
-  )
+  const spacing =
+    !iconOnly && position === 'left'
+      ? 'mr-1.75'
+      : !iconOnly && position === 'right'
+        ? 'ml-1.75'
+        : ''
 
-  // Check if it's already a React element
-  if (typeof Icon === 'object' && 'type' in Icon) {
+  const sizeClass =
+    ICON_SIZE_MAP[iconSize] ||
+    (size ? BUTTON_SIZE_FALLBACK[size] : ICON_SIZE_MAP.medium)
+
+  const classes = twMerge('z-10', spacing, sizeClass, iconClassName)
+
+  if (isValidElement(Icon)) {
     return Icon
   }
 
-  // Otherwise it's a LucideIcon component that needs to be rendered
-  const IconComponent = Icon as LucideIcon
-  return createElement(IconComponent, { className: iconClasses })
+  return createElement(Icon as LucideIcon, { className: classes })
 }
