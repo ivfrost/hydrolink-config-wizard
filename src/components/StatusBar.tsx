@@ -101,7 +101,7 @@ export default function StatusBar() {
           data-tooltip-content={
             connection.connected && connection.ip
               ? `${t('connected')} ${connection.ip}`
-              : t('not_connected')
+              : t('network_status_tooltip')
           }
           className="group flex text-neutral-600 dark:text-neutral-200 text-sm bg-neutral-200 dark:bg-stone-800 outline-1 outline-neutral-200 dark:outline-neutral-700 rounded-2xl px-2.75 lg:px-4 pr-4 py-1.5 lg:py-2 max-w-max shadow-md shadow-black/10 dark:shadow-black/20 cursor-pointer hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
           onClick={() => navigate({ to: '/connect' })}

@@ -20,6 +20,7 @@ export default {
     establish_connection_tip:
       'Please ensure the device is near your Wi-Fi router. For best stability, it’s preferable to use a 2.4GHz connection.',
     failed_scan: 'Could not scan networks. Please try again.',
+    failed_scan_tip: 'Try refreshing in a few seconds.',
     link_account_hint: 'Don’t have an account yet?',
     link_account_hint_2: 'Create one.',
     link_method_qr: 'Scan QR code',
@@ -39,7 +40,9 @@ export default {
     link_text_title: 'Link with text code',
     link_title: 'Link your device',
     next_step: 'Next Step',
-    no_networks: 'No networks found. Please try again.',
+    no_networks: 'No networks found',
+    no_networks_tip:
+      'Are you sure there are Wi-Fi networks nearby? Try refreshing.',
     not_connected: 'Not connected',
     previous_step: 'Back',
     scanning_networks: 'Scanning for networks...',
@@ -51,5 +54,6 @@ export default {
     not_available: 'Not available',
     network_secure: 'Secure',
     network_insecure: 'Insecure',
+    network_status_tooltip: 'Network status',
   },
 }

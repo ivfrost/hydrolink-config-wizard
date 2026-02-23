@@ -13,8 +13,8 @@ export default function Title(props: TitleProps) {
   const base = 'text-neutral-800 dark:text-neutral-100'
   const levelMap: Record<string, string> = {
     h1: 'lg:leading-6 text-xl lg:text-2xl font-medium text-neutral-800 dark:text-neutral-300',
-    h2: 'lg:leading-6 text-lg lg:text-xl font-semibold text-neutral-800 dark:text-neutral-300',
-    h3: 'lg:leading-6 text-base lg:text-lg font-semibold text-neutral-900 dark:text-neutral-200',
+    h2: 'lg:leading-6 text-lg lg:text-xl font-medium text-neutral-800 dark:text-neutral-300',
+    h3: 'lg:leading-6 text-base lg:text-lg font-medium text-neutral-900 dark:text-neutral-200',
   }
 
   const classes = twMerge(base, levelMap[level] ?? levelMap['h1'], className)

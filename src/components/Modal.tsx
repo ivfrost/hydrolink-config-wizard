@@ -68,7 +68,7 @@ export default function Modal({
               variant="tertiary"
               onClick={onClose}
               iconSize="medium"
-              modifier="adaptiveBg"
+              modifier={['adaptiveBg', 'round']}
               icon={X}
             />
           </div>

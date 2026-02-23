@@ -9,7 +9,6 @@ import QRCode from 'react-qr-code'
 import { ConnectionContext, LoadingContext } from '../context'
 import Modal from '../components/Modal'
 import { useQuery } from '@tanstack/react-query'
-import { t } from 'i18next'
 
 export const Route = createFileRoute('/link')({
   component: LinkComponent,
@@ -34,7 +33,7 @@ function LinkComponent() {
   const { refetch, isFetching } = useQuery({
     queryKey: ['fetch-otp'],
     queryFn: async (): Promise<{ otp: string }> => {
-      const response = await fetch('/api/device/link')
+      const response = await fetch('/api/otp')
       if (!response.ok) {
         throw new Error('Failed to get OTP')
       }
@@ -103,30 +102,26 @@ function LinkComponent() {
       <div className="space-y-3.75 flex flex-col">
         <Button
           iconSize="large"
+          message="link_method_qr"
           variant="outline"
           modifier="tallest"
-          size="cta"
           fullWidth={true}
           disabled={!!loadingButton}
           loading={loadingButton === 'qr'}
-          icon={<QrCodeIcon />}
+          icon={QrCodeIcon}
           onClick={() => handleShowOTP('qr')}
-        >
-          {t('link_method_qr')}
-        </Button>
+        />
         <Button
           iconSize="large"
+          message="link_method_text"
           variant="outline"
           modifier="tallest"
-          size="cta"
           fullWidth={true}
           disabled={!!loadingButton}
           loading={loadingButton === 'text'}
-          icon={<LinkIcon />}
+          icon={LinkIcon}
           onClick={() => handleShowOTP('text')}
-        >
-          {t('link_method_text')}
-        </Button>
+        />
       </div>
       {isOpenQrModal && otp && (
         <Modal onClose={() => setOpenQrModal(false)}>

@@ -25,26 +25,57 @@ export const Route = createFileRoute('/connect')({
 })
 
 function ConnectComponent() {
+  const SCAN_TIMEOUT = 30000
   const navigate = useNavigate()
   const { connection, setConnection } = useContext(ConnectionContext)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
   const [selectedSsid, setSelectedSsid] = useState<string | undefined>(
     undefined,
   )
   const [password, setPassword] = useState('')
+  const [isScanning, setIsScanning] = useState(false)
+  let scanStart: number | null = null
   const queryClient = useQueryClient()
 
-  const { isPending, error, data, refetch, isFetching } = useQuery({
+  const { isPending, error, data, refetch, isFetching } = useQuery<
+    AvailableNetworkType,
+    Error
+  >({
     queryKey: ['networks'],
     queryFn: async (): Promise<AvailableNetworkType> => {
       const response = await fetch('/api/networks')
+
+      if (response.status === 202) {
+        scanStart = Date.now()
+        setIsScanning(true)
+        if (Date.now() - (scanStart || 0) > SCAN_TIMEOUT) {
+          toast.loading(t('scan_took_too_long'), { duration: 4000 })
+          setIsScanning(false)
+          return []
+        }
+        return []
+      }
+
+      if (response.status === 204) {
+        setIsScanning(false)
+        return []
+      }
+
       if (!response.ok) {
         throw new Error('Failed to fetch networks')
       }
+
+      setIsScanning(false)
       const networks = await response.json()
-      console.log(AvailableNetworkSchema.parse(networks))
       return AvailableNetworkSchema.parse(networks)
     },
-    refetchInterval: 10000,
+    refetchInterval: (_latestData) => {
+      const latest = queryClient.getQueryData<AvailableNetworkType>([
+        'networks',
+      ])
+      const empty = !latest || latest.length === 0
+      return empty ? 10000 : false
+    },
   })
 
   const connectMutation = useMutation({
@@ -68,6 +99,13 @@ function ConnectComponent() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['currentNetwork'] })
       toast.success(t('connected_to_network', { ssid: variables.ssid }))
+      setConnection((prev) => ({
+        ...prev,
+        connected: true,
+        ssid: variables.ssid,
+        ip: null,
+        isConnecting: false,
+      }))
       setSelectedSsid(undefined)
       setPassword('')
       setTimeout(() => {
@@ -90,10 +128,12 @@ function ConnectComponent() {
   }
 
   const handleDisconnect = async (): Promise<NetworkDisconnectResponseType> => {
+    setIsDisconnecting(true)
     const response = await fetch('/api/network', {
       method: 'DELETE',
     })
     if (!response.ok) {
+      setIsDisconnecting(false)
       toast.error(t('disconnect_failed'))
       throw new Error('Failed to disconnect')
     }
@@ -106,6 +146,7 @@ function ConnectComponent() {
     }))
     setSelectedSsid(undefined)
     setPassword('')
+    setIsDisconnecting(false)
     toast.success(t('disconnect_success'))
     const result = await response.json()
     return NetworkDisconnectResponseSchema.parse(result)
@@ -114,6 +155,9 @@ function ConnectComponent() {
   const isSelectedConnectedNetwork =
     !!selectedSsid && connection.connected && selectedSsid === connection.ssid
 
+  const noNetworks =
+    !isScanning && !isPending && !error && (!data || data.length === 0)
+
   return (
     <div className="space-y-2.75 lg:space-y-4">
       <Title messageId="connect_title" level="h1" />
@@ -121,18 +165,27 @@ function ConnectComponent() {
       {!connection.connected && <Text messageId="establish_connection" />}
       <Text messageId="establish_connection_tip" variant="tip" />
       <form className="space-y-4 lg:space-y-6 mt-6" onSubmit={handleConnect}>
-        <div className="relative space-y-2.75 lg:space-y-4 outline outline-1 outline-neutral-200 dark:outline-neutral-900 rounded-lg p-2 pt-1 lg:p-2 shadow-lg shadow-black/10 dark:shadow-black/10 backdrop-blur-sm overflow-visible">
+        <div className="relative space-y-2.75 lg:space-y-4 outline outline-neutral-200 dark:outline-neutral-900 rounded-lg p-2 pt-1 lg:p-2 shadow-lg shadow-black/10 dark:shadow-black/10 backdrop-blur-sm overflow-visible">
           {/* Loading state */}
-          {isPending && (
-            <div className="space-y-1.75 lg:space-y-2 px-1 max-h-64 lg:max-h-82 animate-pulse">
-              <Text
-                messageId="scanning_networks"
-                className="px-1.25 font-medium py-1.5"
-              />
+          {(isPending || isScanning) && (
+            <div className="space-y-1.75 lg:space-y-2 px-1 max-h-64 lg:max-h-82 animate-pulse overflow-hidden">
+              <div className="flex justify-between items-center">
+                <Text
+                  messageId="scanning_networks"
+                  className="px-1.25 font-medium py-1.5"
+                />
+                <Button
+                  icon={RefreshCcw}
+                  variant="tertiary"
+                  fullWidth={false}
+                  loading={isFetching || isScanning}
+                  onClick={refetch}
+                />
+              </div>
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-14 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
+                  className="h-13 bg-neutral-200 dark:bg-neutral-900 rounded-lg"
                   style={{ animationDelay: `${i * 100}ms` }}
                 />
               ))}
@@ -141,10 +194,18 @@ function ConnectComponent() {
 
           {/* Error state */}
           {!isPending && error && (
-            <div className="flex justify-between items-center mb-1 lg:mb-2">
+            <div className="flex justify-between items-center">
               <Text
                 messageId="failed_scan"
                 className="px-1.25 font-medium py-1.5"
+              />
+              <Text messageId="failed_scan_tip" variant="tip" />
+              <Button
+                icon={RefreshCcw}
+                variant="tertiary"
+                fullWidth={false}
+                loading={isFetching || isScanning}
+                onClick={refetch}
               />
             </div>
           )}
@@ -152,17 +213,16 @@ function ConnectComponent() {
           {/* Networks list */}
           {!isPending && !error && data?.length > 0 && (
             <>
-              <div className="flex justify-between items-center mb-1 lg:mb-2">
+              <div className="flex justify-between items-center">
                 <Text
                   messageId="select_network"
                   className="px-1.25 font-medium py-1.5"
                 />
-
                 <Button
                   icon={RefreshCcw}
                   variant="tertiary"
                   fullWidth={false}
-                  loading={isFetching}
+                  loading={isFetching || isScanning}
                   onClick={refetch}
                 />
               </div>
@@ -175,7 +235,6 @@ function ConnectComponent() {
                     <NetworkButton
                       key={idx}
                       network={network}
-                      selectedSsid={selectedSsid}
                       connection={connection}
                       onSelect={setSelectedSsid}
                       t={t}
@@ -189,7 +248,6 @@ function ConnectComponent() {
                     <NetworkButton
                       key={idx}
                       network={network}
-                      selectedSsid={selectedSsid}
                       connection={connection}
                       onSelect={setSelectedSsid}
                       t={t}
@@ -200,8 +258,20 @@ function ConnectComponent() {
           )}
 
           {/* No networks */}
-          {!isPending && !error && (!data || data.length === 0) && (
-            <Text messageId="no_networks" />
+          {noNetworks && (
+            <div className="flex justify-between items-center">
+              <div className="block px-1.25">
+                <Text messageId="no_networks" className="font-medium py-1.5" />
+                <Text messageId="no_networks_tip" variant="tip" />
+              </div>
+              <Button
+                icon={RefreshCcw}
+                variant="tertiary"
+                fullWidth={false}
+                loading={isFetching || isScanning}
+                onClick={refetch}
+              ></Button>
+            </div>
           )}
         </div>
 
@@ -224,6 +294,7 @@ function ConnectComponent() {
               <div className="w-full justify-end flex">
                 <Button
                   message="disconnect"
+                  loading={isDisconnecting}
                   icon={CloudOff}
                   onClick={handleDisconnect}
                   variant="primary"
@@ -239,6 +310,7 @@ function ConnectComponent() {
                     loading={connectMutation.isPending}
                     icon={Radio}
                     variant="primary"
+                    modifier="action"
                   />
                 </div>
               )

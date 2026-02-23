@@ -5,8 +5,9 @@ import z from 'zod'
 
 const IconPropSchema = z.object({
   icon: z.custom<LucideIcon | ReactElement>(),
-  iconSize: z.enum(['small', 'medium', 'large']).optional(),
+  iconSize: z.enum(['small', 'medium', 'large', 'larger']).optional(),
   iconOnly: z.boolean(),
+  extraIconClasses: z.string().optional(),
 })
 
 type IconProps = z.infer<typeof IconPropSchema>
@@ -15,6 +16,7 @@ const ICON_SIZE_MAP = {
   small: 'w-4 h-4',
   medium: 'w-4.5 h-4.5',
   large: 'w-7 h-7',
+  larger: 'w-10 h-10',
 }
 
 const MODIFIER_MAP = {
@@ -22,11 +24,11 @@ const MODIFIER_MAP = {
 }
 
 export const renderIcon = (props: IconProps): ReactElement => {
-  const { icon, iconSize, iconOnly } = props
+  const { icon, iconSize, iconOnly, extraIconClasses } = props
 
   const sizeClass = ICON_SIZE_MAP[iconSize || 'medium']
   const modifierClass = iconOnly ? MODIFIER_MAP['iconOnly'] : ''
-  const classes = twMerge('z-20', sizeClass, modifierClass)
+  const classes = twMerge('z-20', sizeClass, modifierClass, extraIconClasses)
 
   if (isValidElement(icon)) {
     return icon
